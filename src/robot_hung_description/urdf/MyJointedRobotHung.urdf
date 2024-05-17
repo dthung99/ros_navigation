@@ -1,0 +1,142 @@
+﻿<?xml version="1.0"?>
+<robot name="myArm">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="4 4 1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="arm1">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/robot_hung_description/urdf/EllipseHung.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+  <link name="arm2">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/robot_hung_description/urdf/EllipseHung.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+  <link name="arm3">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/robot_hung_description/urdf/EllipseHung.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+  <link name="arm4">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/robot_hung_description/urdf/EllipseHung.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+  <link name="arm5">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/robot_hung_description/urdf/EllipseHung.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+  <link name="arm6">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/robot_hung_description/urdf/EllipseHung.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+<!--
+  <link name="arm2">
+    <visual>
+      <geometry>
+        <cylinder length="2" radius="0.5"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 1"/>
+    </visual>
+  </link>
+-->
+
+  <link name="endeffector">
+    <visual>
+      <geometry>
+        <cylinder length="3" radius="0.1"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 1.5"/>
+    </visual>
+  </link>
+
+  
+  <joint name="base_to_arm1" type="revolute">
+    <parent link ="base_link"/>
+    <child link="arm1"/>
+    <axis xyz="1 0 0" />
+    <origin rpy="0 0 0" xyz="0 0 0.5"/>
+    <limit effort="30" velocity="1.0" lower="0" upper="1.57"/>
+  </joint>
+
+  <joint name="arm1_to_arm2" type="revolute">
+    <parent link ="arm1"/>
+    <child link="arm2"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="0 1 0" />
+    <limit effort="30" velocity="1.0" lower="-0.78" upper="0.78"/>
+  </joint>
+
+  <joint name="arm2_to_arm3" type="revolute">
+    <parent link ="arm2"/>
+    <child link="arm3"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="1 0 0" />
+    <limit effort="30" velocity="1.0" lower="-0.78" upper="0.78"/>
+  </joint>
+
+  <joint name="arm3_to_arm4" type="revolute">
+    <parent link ="arm3"/>
+    <child link="arm4"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="0 1 0" />
+    <limit effort="30" velocity="1.0" lower="-0.78" upper="0.78"/>
+  </joint>
+
+  <joint name="arm4_to_arm5" type="revolute">
+    <parent link ="arm4"/>
+    <child link="arm5"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="1 0 0" />
+    <limit effort="30" velocity="1.0" lower="-0.78" upper="0.78"/>
+  </joint>
+
+  <joint name="arm5_to_arm6" type="revolute">
+    <parent link ="arm5"/>
+    <child link="arm6"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="0 1 0" />
+    <limit effort="30" velocity="1.0" lower="-0.78" upper="0.78"/>
+  </joint>
+
+  <joint name="arm6_to_endeffector" type="prismatic">
+    <parent link ="arm6"/>
+    <child link="endeffector"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1.0" velocity="1.0" lower="0.0" upper="0.0"/>
+  </joint>
+
+</robot>

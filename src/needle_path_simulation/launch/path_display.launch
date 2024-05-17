@@ -1,0 +1,5 @@
+<launch>
+        <param name="robot_description" command="cat $(find needle_path_simulation)/urdf/standard_test_Robot.urdf" />
+        <node name="robot_state_publisher_node" pkg="robot_state_publisher" type="robot_state_publisher" />
+        <node name="path_publisher_node" pkg="needle_path_simulation" type="path_publisher" />
+</launch>

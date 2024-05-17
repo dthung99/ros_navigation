@@ -1,0 +1,4 @@
+<launch>
+    <rosparam command="load" file="$(find needle_path_simulation)/config/user_parameters.yaml" />
+    <node name="move_robot" pkg="needle_path_simulation" type="move_robot" output="screen"/>
+</launch>

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot name="myArm">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="4 4 1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="arm1">
+    <visual>
+      <geometry>
+        <mesh filename="file:/home/rosbox/catkin_ws/src/noob_tutorial/urdf_tutorial/urdf/Ellipse.dae"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 3"/>
+    </visual>
+  </link>
+
+  <link name="arm2">
+    <visual>
+      <geometry>
+        <cylinder length="2" radius="0.5"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 1"/>
+    </visual>
+  </link>
+
+  
+  <joint name="base_to_arm1" type="continuous">
+    <parent link ="base_link"/>
+    <child link="arm1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.5"/>
+    <limit effort="30" velocity="1.0" lower="0" upper="1.57"/>
+  </joint>
+
+  <joint name="arm1_to_arm2" type="revolute">
+    <parent link ="arm1"/>
+    <child link="arm2"/>
+    <origin rpy="0 0 0" xyz="0 0 6"/>
+    <axis xyz="0 1 0" />
+    <limit effort="30" velocity="1.0" lower="-0.78" upper="0.78"/>
+  </joint>
+</robot>

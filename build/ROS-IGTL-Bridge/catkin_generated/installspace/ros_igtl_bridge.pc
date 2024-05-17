@@ -1,0 +1,8 @@
+prefix=/home/rosbox/catkin_ws/install
+
+Name: ros_igtl_bridge
+Description: Description of ros_igtl_bridge
+Version: 1.0.0
+Cflags: -I${prefix}/include -I/home/rosbox/igtl/OpenIGTLink-build -I/home/rosbox/igtl/OpenIGTLink/Source -I/home/rosbox/igtl/OpenIGTLink-build/Source -I/home/rosbox/igtl/OpenIGTLink/Source/igtlutil -I/home/rosbox/igtl/OpenIGTLink-build/Source/igtlutil -I/usr/include/vtk-7.1 -I/usr/include/freetype2 -I/usr/include -I/usr/include/x86_64-linux-gnu -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/include/python3.8 -I/usr/include/hdf5/openmpi -I/usr/include/jsoncpp -I/usr/include/libxml2 -I/usr/include/tcl -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include/opencv4
+Libs: -L${prefix}/lib 
+Requires: message_runtime

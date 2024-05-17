@@ -1,0 +1,10 @@
+initial_pose/x: 0.0
+initial_pose/y: 0.5
+initial_pose/z: 1.0
+quaternion/x: 1.0
+quaternion/y: 1.0
+quaternion/z: 1.0
+quaternion/w: 1.0
+target_pose/x: 0.0
+target_pose/y: 1.0
+target_pose/z: 1.0
