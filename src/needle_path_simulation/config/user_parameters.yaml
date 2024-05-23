@@ -1,0 +1,33 @@
+# Moveit configuration
+initial_pose/x: 0.0
+initial_pose/y: 0.5
+initial_pose/z: 1.0
+target_pose/x: 0.0
+target_pose/y: 1.0
+target_pose/z: 1.0
+planning_time_limit: 10.0
+jump_threshold: 5.0
+
+# Network configuration
+RIB_server_ip: "10.0.2.2"
+RIB_port: 18944
+RIB_type: "client"
+
+# 3D slice variable for exchanging information
+entry_point_name: "entry_point"
+target_point_name: "target_point"
+slicer_scale: 0.001
+brain_mesh/color/a: 0.5
+brain_mesh/color/r: 1.0
+brain_mesh/color/g: 1.0
+brain_mesh/color/b: 0.0
+
+
+quaternion/x: 1.0
+quaternion/y: 1.0
+quaternion/z: 1.0
+quaternion/w: 1.0
+testx: 0.0
+testy: 1.0
+testz: 0.0
+testt: -0.785

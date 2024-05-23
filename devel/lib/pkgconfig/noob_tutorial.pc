@@ -1,0 +1,8 @@
+prefix=/home/rosbox/catkin_ws/devel
+
+Name: noob_tutorial
+Description: Description of noob_tutorial
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

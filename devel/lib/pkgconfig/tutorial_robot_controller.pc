@@ -1,0 +1,8 @@
+prefix=/home/rosbox/catkin_ws/devel
+
+Name: tutorial_robot_controller
+Description: Description of tutorial_robot_controller
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp rospy sensor_msgs std_msgs tf
