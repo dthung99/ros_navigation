@@ -19,16 +19,20 @@ namespace rvt = rviz_visual_tools;
 
 // Declare some parameters
 // Some moveit parameters
-tf2::Vector3 needle_orientation_in_end_effector_frame(0.0,0.0,1.0); // Orientation of the needle wrt end effector frame
 geometry_msgs::Pose initial_pose; // Initial and target pose
 geometry_msgs::Pose target_pose; // Initial and target pose
 double planning_time_limit = 10.0; // Time limit for path planning
 moveit_msgs::RobotTrajectory trajectory; // Trajectory
 double jump_threshold = 0.0; // No large robot jump in joint space > 0.01 radian
+double task_space_discretize_distance = 0.001; // The distance between consecutive waypoints along the Cartesian path when inserting the needle = 0.001 m
+double starting_duration = 5.0; // Time to move from starting position to initial pose
+double insert_needle_duration = 3.0; // Time to move from initial pose to target pose (insert needle)
+double remove_needle_duration = 3.0; // Time to move from target pose to initial pose (remove needle)
 double fraction; // How well the end effector follow the waypoints
 bool success = true; // Variable to check if planning is success
 moveit::planning_interface::MoveGroupInterface::Plan my_plan; // Call the planner to compute the plan and visualize it.
 Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity(); // position in 3D for title
+double GUI_text_height = 1.0;
 // Pointer to control moveit
 moveit_visual_tools::MoveItVisualTools* visual_tools_Ptr = nullptr;
 moveit::planning_interface::MoveGroupInterface* move_group_Ptr = nullptr;
@@ -46,7 +50,9 @@ int early_ending_counter = 3; // Countdown to 0 if user try to do path planning 
 
 // ************************************************************************************************************
 // ************************************************************************************************************
-void set_needle_orientation_for_start_and_end_pose(geometry_msgs::Pose& initial_pose, geometry_msgs::Pose& target_pose)
+void set_needle_orientation_for_start_and_end_pose(tf2::Vector3& needle_orientation_in_end_effector_frame,
+                                                   geometry_msgs::Pose& initial_pose,
+                                                   geometry_msgs::Pose& target_pose)
   {
   // Get the direction of needle insertion
   tf2::Vector3 insertion_direction(target_pose.position.x - initial_pose.position.x,
@@ -94,6 +100,15 @@ void show_friendly_GUI_text(moveit_visual_tools::MoveItVisualTools& visual_tools
   visual_tools.prompt(text);
 }
 
+void set_execute_duration_for_trajectory(moveit_msgs::RobotTrajectory& input_trajectory, double execute_duration) {
+  std::vector<trajectory_msgs::JointTrajectoryPoint>& joint_trajectories = input_trajectory.joint_trajectory.points;
+  size_t size = joint_trajectories.size();
+  execute_duration = execute_duration/size;
+  for (int i=0; i<size; i++) {
+    joint_trajectories[i].time_from_start = ros::Duration(execute_duration*i);
+  }
+}
+
 bool move_through_list_of_points(std::vector<geometry_msgs::Pose>& waypoints, 
                                  moveit::planning_interface::MoveGroupInterface& move_group,
                                  const robot_state::JointModelGroup* joint_model_group,
@@ -101,13 +116,14 @@ bool move_through_list_of_points(std::vector<geometry_msgs::Pose>& waypoints,
                                  geometry_msgs::Pose& brain_model_pose,
                                  double velociy_scaling = 1.0,
                                  double eef_step = 0.001, // step to discretize in task space
-                                 std::string action = "default action",
-                                 bool show_brain = true) // show_brain DELETE LATER
+                                 double execute_duration = 3.0,
+                                 std::string action = "default action") // show_brain DELETE LATER
   {    
   move_group.setMaxVelocityScalingFactor(velociy_scaling); // change the movement speed
   show_friendly_GUI_text(visual_tools, "Preparing to " + action + "\nPress next to show the path planned");
   // Plan the trajectory;
   fraction = move_group.computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+  set_execute_duration_for_trajectory(trajectory, execute_duration); // Slow down or speed up the robot
   my_plan.trajectory_ = trajectory;
   // Stop if planning fail
   if (fraction != 1.0) {
@@ -138,8 +154,8 @@ bool move_through_list_of_points(std::vector<geometry_msgs::Pose>& waypoints,
 void clean_exit(moveit::planning_interface::MoveGroupInterface& move_group,
                 moveit_visual_tools::MoveItVisualTools& visual_tools) {
   // Clean exit
-  move_group.clearPathConstraints(); // Clear Path constraint
   visual_tools.deleteAllMarkers(); // Clear Marker
+  move_group.clearPathConstraints(); // Clear Path constraint
   visual_tools.trigger();
   brain_mesh_pub.publish(empty_brain_mesh); // remove brain model
   ros::shutdown(); // Shut down ros
@@ -164,9 +180,9 @@ void pointCallback(const ros_igtl_bridge::igtlpoint::ConstPtr& msg) {
   if (received_entry_point && received_target_point) {
     early_ending_counter = -1;
     visual_tools_Ptr->publishText(text_pose, "I have received both entry_point and target_point\nPress Next to continue", rvt::PURPLE, rvt::XXXLARGE, 3);
+    visual_tools_Ptr->publishArrow(initial_pose.position, target_pose.position, rvt::PURPLE, rvt::XXSMALL, 1); // Visualize the path
+    visual_tools_Ptr->trigger();
   }
-  visual_tools_Ptr->publishArrow(initial_pose.position, target_pose.position, rvt::PURPLE, rvt::XXSMALL, 1); // Visualize the path
-  visual_tools_Ptr->trigger();
   return;
 }
 
@@ -216,12 +232,15 @@ void polydataCallback(const ros_igtl_bridge::igtlpolydata::ConstPtr& msg) {
                   msg->strips.size(),
                   msg->lines.size(),
                   msg->verts.size());
-  received_brain_mesh = true; // Turn to true after received brain model
-  // Set up brain mesh model
-  brain_mesh.header.stamp = ros::Time::now();
-  convert_igtlpolydata_to_brain_mesh_Marker(*msg);
-  // Visualize brain mesh
-  brain_mesh_pub.publish(brain_mesh);
+  
+  if (msg->points.size() > 0) {
+    received_brain_mesh = true; // Turn to true after received brain model
+    // Set up brain mesh model
+    brain_mesh.header.stamp = ros::Time::now();
+    convert_igtlpolydata_to_brain_mesh_Marker(*msg);
+    // Visualize brain mesh
+    brain_mesh_pub.publish(brain_mesh);
+  }
   return;
 }
 // ************************************************************************************************************
@@ -256,6 +275,20 @@ int main(int argc, char** argv)
   // Get other parameters
   ros::param::get("/planning_time_limit", planning_time_limit); // Get the planning time limit
   ros::param::get("/jump_threshold", jump_threshold); // Get jump_threshold to avoid snapping of robot
+  ros::param::get("/starting_duration", starting_duration); // Time to move from starting position to initial pose
+  ros::param::get("/insert_needle_duration", insert_needle_duration); // Time to move from initial pose to target pose (insert needle)
+  ros::param::get("/remove_needle_duration", remove_needle_duration); // Time to move from target pose to initial pose (remove needle)
+  ros::param::get("/GUI_text_height", GUI_text_height); // Get the height of GUI text in RVIZ
+  ros::param::get("/task_space_discretize_distance", task_space_discretize_distance); // The distance between consecutive waypoints along the Cartesian path when inserting the needle = 0.001 m
+  // Get needle_orientation_in_end_effector_frame
+  double needle_x;
+  double needle_y;
+  double needle_z;
+  ros::param::get("/needle_orientation_in_end_effector_frame/x", needle_x);
+  ros::param::get("/needle_orientation_in_end_effector_frame/y", needle_y);
+  ros::param::get("/needle_orientation_in_end_effector_frame/z", needle_z);
+  tf2::Vector3 needle_orientation_in_end_effector_frame(needle_x, needle_y, needle_z);
+
   // Set single threading
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -278,7 +311,7 @@ int main(int argc, char** argv)
   visual_tools.loadMarkerPub();
   visual_tools.loadRvizMarkers();
   // Set position of text markers
-  text_pose.translation().z() = 1.75;
+  text_pose.translation().z() = GUI_text_height;
   // Batch publishing is used to reduce the number of messages being sent to RViz for large visualizations
   visual_tools.trigger();
   // ************************************
@@ -347,15 +380,19 @@ int main(int argc, char** argv)
   }
   // Set the orientation base on start and end position of needle
   // after welcome text to wait for slicer to publish
-  set_needle_orientation_for_start_and_end_pose(initial_pose, target_pose);
+  set_needle_orientation_for_start_and_end_pose(needle_orientation_in_end_effector_frame, initial_pose, target_pose);
 
   // ************************************
   // Move to initial pose
   brain_mesh_pub.publish(empty_brain_mesh); // remove brain model first
+  // Destroy subscriber
+  igtlpoint_sub.shutdown();
+  igtlpolydata_sub.shutdown();
+  // Set up to move to start point
   waypoints.resize(0);
   waypoints.push_back(move_group.getCurrentPose().pose);
   waypoints.push_back(initial_pose);
-  success = move_through_list_of_points(waypoints, move_group, joint_model_group, visual_tools, brain_model_pose, 1.0, 0.01, "Move to Start Pose", false);
+  success = move_through_list_of_points(waypoints, move_group, joint_model_group, visual_tools, brain_model_pose, 1.0, 0.01, starting_duration, "Move to Start Pose");
   if (!success) {
     show_friendly_GUI_text(visual_tools, "Shutting down\nPress next to shut down");
     clean_exit(move_group, visual_tools);
@@ -363,15 +400,17 @@ int main(int argc, char** argv)
 
   // ************************************
   // Add Brain Model to the environment
-  // User friendly Text
-  show_friendly_GUI_text(visual_tools, "Preparing to Add brain model\nPress Next to Add brain model");
-  // Add brain model
-  visual_tools.publishText(text_pose, "Brain model Added\nPress Next to continue", rvt::PURPLE, rvt::XXXLARGE, 3);
-  // Visualize brain mesh
-  brain_mesh_pub.publish(brain_mesh);
-  ROS_INFO_NAMED("tutorial", "Added brain model into the workspace"); // Show text in RViz of status 
-  visual_tools.trigger(); // Sending visualization
-  visual_tools.prompt("Press 'next' to continue");
+  if (received_brain_mesh) {
+    // User friendly Text
+    show_friendly_GUI_text(visual_tools, "Preparing to Add brain model\nPress Next to Add brain model");
+    // Add brain model
+    visual_tools.publishText(text_pose, "Brain model Added\nPress Next to continue", rvt::PURPLE, rvt::XXXLARGE, 3);
+    // Visualize brain mesh
+    brain_mesh_pub.publish(brain_mesh);
+    ROS_INFO_NAMED("tutorial", "Added brain model into the workspace"); // Show text in RViz of status 
+    visual_tools.trigger(); // Sending visualization
+    visual_tools.prompt("Press 'next' to continue");
+  }
 
   // ************************************
   // Set path constraints to make the needle point mantain desired orientation
@@ -382,7 +421,7 @@ int main(int argc, char** argv)
   waypoints.resize(0);
   waypoints.push_back(move_group.getCurrentPose().pose);
   waypoints.push_back(target_pose);
-  success = move_through_list_of_points(waypoints, move_group, joint_model_group, visual_tools, brain_model_pose, 1.0, 0.001, "Insert the Needle");
+  success = move_through_list_of_points(waypoints, move_group, joint_model_group, visual_tools, brain_model_pose, 1.0, task_space_discretize_distance, insert_needle_duration, "Insert the Needle");
   if (!success) {
     show_friendly_GUI_text(visual_tools, "Shutting down\nPress next to shut down");
     clean_exit(move_group, visual_tools);
@@ -392,7 +431,7 @@ int main(int argc, char** argv)
   waypoints.resize(0);
   waypoints.push_back(move_group.getCurrentPose().pose);
   waypoints.push_back(initial_pose);
-  success = move_through_list_of_points(waypoints, move_group, joint_model_group, visual_tools, brain_model_pose, 1.0, 0.001, "Remove the Needle");
+  success = move_through_list_of_points(waypoints, move_group, joint_model_group, visual_tools, brain_model_pose, 1.0, task_space_discretize_distance, remove_needle_duration, "Remove the Needle");
   if (!success) {
     show_friendly_GUI_text(visual_tools, "Shutting down\nPress next to shut down");
     clean_exit(move_group, visual_tools);

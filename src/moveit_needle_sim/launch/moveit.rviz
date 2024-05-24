@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
+        - /MotionPlanning1/Planned Path1
       Splitter Ratio: 0.501006007194519
     Tree Height: 140
   - Class: rviz/Help
@@ -116,7 +117,7 @@ Visualization Manager:
         Show Robot Collision: false
         Show Robot Visual: true
         Show Trail: false
-        State Display Time: 0.1 s
+        State Display Time: 0.01 s
         Trail Step Size: 1
         Trajectory Topic: move_group/display_planned_path
         Use Sim Time: true
@@ -205,6 +206,7 @@ Visualization Manager:
       Name: MarkerArray
       Namespaces:
         Arrow: true
+        Text: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -231,7 +233,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.5250933170318604
+      Distance: 6.420619964599609
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -239,17 +241,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.18844829499721527
-        Y: -0.2604316473007202
-        Z: 0.16052284836769104
+        X: -0.12655583024024963
+        Y: -0.1721760332584381
+        Z: 0.3543766438961029
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -0.05520351231098175
+      Pitch: 0.15479643642902374
       Target Frame: base_link
-      Yaw: 1.5253959894180298
+      Yaw: 1.0803943872451782
     Saved: ~
 Window Geometry:
   Displays:
